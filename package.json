@@ -1,0 +1,27 @@
+{
+  "name": "graphics-engine",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "scripts": {
+    "build": "cd wasm && wasm-pack build --target web --out-dir ../src/frontend/wasm && cd ../src/frontend && npm install",
+    "start": "node src/index.js",
+    "test": "nodemon src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "json": "^11.0.0",
+    "nodemon": "^3.1.9"
+  },
+  
+  "localConfig": {
+    "port": 3999
+  }
+}
