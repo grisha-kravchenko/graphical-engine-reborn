@@ -13,10 +13,7 @@ const screen = (resolution) => {
     const size = canvas.width;
     const pixelSize = size / resolution;
 
-    let id = 0;
-    const pixels = new Array(resolution ** 2).fill(0).map(() => {
-        id++;
-
+    const pixels = new Array(resolution ** 2).fill(0).map((_, id) => {
         const x = id % resolution;
         const y = Math.floor(id / resolution);
         const color = () => Math.floor(Math.random() * 255);
@@ -24,8 +21,6 @@ const screen = (resolution) => {
 
         return new Pixel(x, y, rgb.r, rgb.g, rgb.b);
     });
-
-    console.log(pixels);
 
     const screenProperties = { size, pixelSize };
     return { screenProperties, pixels, ctx };
