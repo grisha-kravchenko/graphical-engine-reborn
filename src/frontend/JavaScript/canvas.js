@@ -7,10 +7,9 @@ import { Pixel } from '../wasm/wasm.js';
  */
 
 const screen = (resolution) => {
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = $("#canvas")[0].getContext('2d');
 
-    const size = canvas.width;
+    const size = $("#canvas")[0].width;
     const pixelSize = size / resolution;
 
     const pixels = new Array(resolution ** 2).fill(0).map((_, id) => {
