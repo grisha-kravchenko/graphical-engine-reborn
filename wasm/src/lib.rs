@@ -3,6 +3,7 @@ mod structures;
 mod vectors;
 use structures::*;
 use vectors::*;
+use js_sys::Math;
 
 #[wasm_bindgen]
 pub fn render_screen(pixels: Vec<Pixel>, world: Vec<WorldObject>, player: Player, textures: Vec<Texture>) -> Result<Vec<Pixel>, JsValue> {
@@ -14,7 +15,12 @@ pub fn render_screen(pixels: Vec<Pixel>, world: Vec<WorldObject>, player: Player
       y: pixel.y as f32,
       z: 0.0,
     };
-    new_pixels.push(pixel);
+    let color = Vec::from([
+      Math::floor(Math::random() * 255.0) as u8,
+      Math::floor(Math::random() * 255.0) as u8,
+      Math::floor(Math::random() * 255.0) as u8,
+    ]);
+    new_pixels.push(Pixel { x: pixel.x, y: pixel.y, r: color[0], g: color[1], b: color[2] });
   }
   Ok(new_pixels)
 }

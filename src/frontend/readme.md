@@ -1,0 +1,1 @@
+frontend directory, containing html, css, and js files. Also contains compiled rust wasm files in the wasm directory.

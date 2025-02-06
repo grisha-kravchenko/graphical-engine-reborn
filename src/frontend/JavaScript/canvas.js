@@ -15,8 +15,7 @@ const screen = (resolution) => {
     const pixels = new Array(resolution ** 2).fill(0).map((_, id) => {
         const x = id % resolution;
         const y = Math.floor(id / resolution);
-        const color = () => Math.floor(Math.random() * 255);
-        const rgb = {r: color(), g: color(), b: color()};
+        const rgb = {r: 255, g: 255, b: 255};
 
         return new Pixel(x, y, rgb.r, rgb.g, rgb.b);
     });
