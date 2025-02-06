@@ -25,6 +25,20 @@ const screen = (resolution) => {
 }
 
 /**
+ * @description Refreshes the pixels array
+ * @param {Array} pixels
+ * @returns {Array}
+ */
+const refreshPixels = (pixels) => {
+    const copyPixels = new Array();
+    for (let i = 0; i < pixels.length; i++) {
+        const oldPixel = pixels[i];
+        copyPixels.push(new Pixel(oldPixel.x, oldPixel.y, oldPixel.r, oldPixel.g, oldPixel.b));
+    }
+    return copyPixels;
+}
+
+/**
  * @description Draws the screen on the canvas
  * @param {Object} screenProperties
  * @param {Array} pixels
@@ -43,4 +57,4 @@ const drawScreen = (screenProperties, pixels, ctx) => {
     });
 }
 
-export { screen, drawScreen };
+export { screen, drawScreen, refreshPixels };
