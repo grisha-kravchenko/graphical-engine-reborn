@@ -13,19 +13,17 @@ use shaders::*;
 use js_sys::Math;
 
 const FOV: f32 = 100.0;
-
-#[wasm_bindgen]
-pub fn render_screen(pixels: Vec<Pixel>, world: Vec<WorldObject>, player: Player) -> Result<Vec<Pixel>, JsValue> {
+  #[wasm_bindgen]
+  pub fn render_screen(pixels: Vec<Pixel>, world: Vec<WorldObject>, player: Player, light: f64) -> Result<Vec<Pixel>, JsValue> {
   let mut new_pixels: Vec<Pixel> = Vec::with_capacity(pixels.len());
   let transformed_world = transform_world(world.clone(), player);
-  console_log!("transformed_world: {:?}", transformed_world.clone());
   for pixel in pixels {
     let _position = Vector3d {
       x: pixel.x as f32,
       y: pixel.y as f32,
       z: 0.0,
     };
-    let new_pixel = pixel_shader(pixel, transformed_world.clone());
+    let new_pixel = pixel_shader(pixel, transformed_world.clone(), light);
     new_pixels.push(new_pixel);
   }
   Ok(new_pixels)
@@ -59,7 +57,7 @@ pub fn transform_world(world: Vec<WorldObject>, player: Player) -> Vec<Transform
       transformed_triangle.push(projected);
     }
 
-    let normal = transformed_triangle[0].cross_product(transformed_triangle[1]);
+    let normal = transformed_triangle[1].subtract(transformed_triangle[0]).cross_product(transformed_triangle[2].subtract(transformed_triangle[0]));
     let transformed_triangle_vertices: Vec<TriangleVertice> = transformed_triangle.iter().map(|vertice| {
       let projected = project_vector(*vertice, player.position, player.rotation);
       TriangleVertice{ position: projected, screen_position: screen_position(projected) }
@@ -80,7 +78,21 @@ pub fn transform_world(world: Vec<WorldObject>, player: Player) -> Vec<Transform
 
 pub fn screen_position(position: Vector3d) -> Vector2d {
   Vector2d {
-    x: Math::round((position.x * FOV / position.z) as f64) as f32,
-    y: Math::round((position.y * FOV / position.z) as f64) as f32,
+    x: round!(position.x * FOV / position.z),
+    y: round!(position.y * FOV / position.z),
   }
+}
+
+#[macro_export]
+macro_rules! round {
+  ($x:expr) => {
+    Math::round($x as f64) as f32
+  };
+}
+
+#[macro_export]
+macro_rules! floor {
+  ($x:expr) => {
+    Math::floor($x as f64) as f32
+  };
 }

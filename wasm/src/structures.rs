@@ -3,7 +3,7 @@ use crate::vectors::*;
 // use web_sys::console;
 
 #[wasm_bindgen]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Pixel {
   pub x: u32,
   pub y: u32,

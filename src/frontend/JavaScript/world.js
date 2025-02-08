@@ -4,8 +4,8 @@ const loadWorldObjects = () => {
   const constWorldObjects = [
     {
       vertice1: [0, 0, 100],
-      vertice2: [100, 0, 100],
-      vertice3: [0, 100, 100],
+      vertice2: [300, 0, 100],
+      vertice3: [0, 150, 100],
       texture_id: 0,
     },
   ];
