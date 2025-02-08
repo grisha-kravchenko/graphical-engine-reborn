@@ -4,6 +4,7 @@ mod structures;
 mod vectors;
 mod shaders;
 mod quaternions;
+mod websocket;
 #[macro_use]
 mod console;
 

@@ -20,8 +20,9 @@
     "json": "^11.0.0",
     "nodemon": "^3.1.9"
   },
-  
-  "localConfig": {
-    "port": 3999
+  "nodemonConfig": {
+    "ignore": [
+      "src/frontend/"
+    ]
   }
 }

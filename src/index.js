@@ -1,4 +1,6 @@
 const server = require('./backend/server');
-const localConfig = require('../package.json').localConfig;
+const createUserConfig = require('./backend/clientLocalConfig');
+const localConfig = require('../localconfig.json');
 
+createUserConfig(localConfig);
 server(localConfig.port);

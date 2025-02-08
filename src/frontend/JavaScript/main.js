@@ -1,5 +1,6 @@
-import init, { render_screen, Player, Vector3d, Vector2d } from '../wasm/wasm.js';
+import init, { render_screen, Player, Vector3d, Vector2d, connect_to_server } from '../wasm/wasm.js';
 import { screen, drawScreen, refreshPixels } from './canvas.js';
+import { default as localConfig } from '../wasm/clientLocalConfig.js';
 import { loadWorldObjects } from './world.js';
 const tickTime = 100;
 
@@ -24,6 +25,7 @@ init().then(() => {
 	console.log("init");
 	const screenObject = screen(100);
 	const playerRotation = [-10, -5];
+	connect_to_server(localConfig.websocketServerAddress);
 	playerGlobal = new Player(new Vector3d(0, 0, -200), new Vector2d(playerRotation[0] * Math.PI / 180, playerRotation[1] * Math.PI / 180));
 	new Promise(() => loop(screenObject));
 });
