@@ -1,0 +1,4 @@
+{
+    "port": 3999,
+    "websocketServerAddress": "ws://localhost:3999"
+}
