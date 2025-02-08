@@ -1,7 +1,7 @@
 use crate::structures::*;
 use crate::console_log;
 use crate::vectors::*;
-
+use js_sys::Math;
 pub fn pixel_shader(pixel: Pixel, world: Vec<TransformedTriangle>) -> Pixel {
   let mut color: Vec<u8> = Vec::from([0, 0, 0]);
   for triangle in world {
@@ -34,5 +34,5 @@ pub fn pixel_in_triangle(pixel: Pixel, triangle: Vec<Vector2d>) -> bool {
   let beta = ((triangle[2].y - triangle[0].y) * (pixel.x as f32 - triangle[2].x) + (triangle[0].x - triangle[2].x) * (pixel.y as f32 - triangle[2].y)) / denominator;
   let gamma = 1.0 - alpha - beta;
 
-  alpha > 0.0 && beta > 0.0 && gamma > 0.0
+  Math::floor((alpha * 1000.0) as f64) > 0.0 && Math::floor((beta * 1000.0) as f64) > 0.0 && Math::floor((gamma * 1000.0) as f64) > 0.0
 }

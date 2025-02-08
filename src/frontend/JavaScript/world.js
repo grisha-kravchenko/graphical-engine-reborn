@@ -11,9 +11,9 @@ const loadWorldObjects = () => {
   ];
   const worldObjects = new Array(constWorldObjects.length).fill().map((object, index) => {
     return new WorldObject(
-      new Vector3d(constWorldObjects[index].vertice1.x, constWorldObjects[index].vertice1.y, constWorldObjects[index].vertice1.z),
-      new Vector3d(constWorldObjects[index].vertice2.x, constWorldObjects[index].vertice2.y, constWorldObjects[index].vertice2.z),
-      new Vector3d(constWorldObjects[index].vertice3.x, constWorldObjects[index].vertice3.y, constWorldObjects[index].vertice3.z),
+      new Vector3d(constWorldObjects[index].vertice1[0], constWorldObjects[index].vertice1[1], constWorldObjects[index].vertice1[2]),
+      new Vector3d(constWorldObjects[index].vertice2[0], constWorldObjects[index].vertice2[1], constWorldObjects[index].vertice2[2]),
+      new Vector3d(constWorldObjects[index].vertice3[0], constWorldObjects[index].vertice3[1], constWorldObjects[index].vertice3[2]),
       constWorldObjects[index].texture_id
     );
   });

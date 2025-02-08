@@ -55,13 +55,13 @@ pub struct WorldObject {
 #[derive(Clone, Copy, Debug)]
 pub struct Player {
   pub position: Vector3d,
-  pub rotation: Vector3d,
+  pub rotation: Vector2d,
 }
 
 #[wasm_bindgen]
 impl Player {
   #[wasm_bindgen(constructor)]
-  pub fn new(position: Vector3d, rotation: Vector3d) -> Player {
+  pub fn new(position: Vector3d, rotation: Vector2d) -> Player {
     Player { position, rotation }
   }
 }

@@ -1,4 +1,4 @@
-import init, { render_screen, Player, Vector3d } from '../wasm/wasm.js';
+import init, { render_screen, Player, Vector3d, Vector2d } from '../wasm/wasm.js';
 import { screen, drawScreen, refreshPixels } from './canvas.js';
 import { loadWorldObjects } from './world.js';
 const tickTime = 100;
@@ -20,16 +20,17 @@ const loop = async (screenObject) => {
 	// }
 }
 
-const cameraRotation = (yaw, pitch) => {
-	const x = Math.sin(yaw * Math.PI / 180) * Math.cos(pitch * Math.PI / 180);
-	const y = Math.sin(pitch * Math.PI / 180);
-	const z = Math.cos(yaw * Math.PI / 180) * Math.cos(pitch * Math.PI / 180);
-	return new Vector3d(x, y, z);
-}
+// const cameraRotation = (yaw, pitch) => {
+// 	const x = Math.round(Math.sin(yaw * Math.PI / 180) * Math.cos(pitch * Math.PI / 180) * 10000) / 10000;
+// 	const y = Math.round(Math.sin(pitch * Math.PI / 180) * 10000) / 10000;
+// 	const z = Math.round(Math.cos(yaw * Math.PI / 180) * Math.cos(pitch * Math.PI / 180) * 10000) / 10000;
+// 	return new Vector3d(x, y, z);
+// }
 
 init().then(() => {
 	console.log("init");
 	const screenObject = screen(100);
-	playerGlobal = new Player(new Vector3d(0, 0, 0), cameraRotation(180, 90));
+	const playerRotation = [-5, -2];
+	playerGlobal = new Player(new Vector3d(0, 0, -100), new Vector2d(playerRotation[0] * Math.PI / 180, playerRotation[1] * Math.PI / 180));
 	new Promise(() => loop(screenObject));
 });

@@ -10,13 +10,14 @@ mod console;
 use structures::*;
 use vectors::*;
 use shaders::*;
-use quaternions::Quaternion;
+use js_sys::Math;
+
+const FOV: f32 = 100.0;
 
 #[wasm_bindgen]
 pub fn render_screen(pixels: Vec<Pixel>, world: Vec<WorldObject>, player: Player) -> Result<Vec<Pixel>, JsValue> {
   let mut new_pixels: Vec<Pixel> = Vec::with_capacity(pixels.len());
   let transformed_world = transform_world(world.clone(), player);
-  console_log!("world: {:?}", world.clone());
   console_log!("transformed_world: {:?}", transformed_world.clone());
   for pixel in pixels {
     let _position = Vector3d {
@@ -30,54 +31,23 @@ pub fn render_screen(pixels: Vec<Pixel>, world: Vec<WorldObject>, player: Player
   Ok(new_pixels)
 }
 
-pub fn project_vector(vector: Vector3d, player_position: Vector3d, player_rotation: Vector3d) -> Vector3d {
-    console_log!("Input vector: {:?}", vector);
-    console_log!("Player position: {:?}", player_position);
-    console_log!("Player rotation: {:?}", player_rotation);
+pub fn project_vector(vector: Vector3d, player_position: Vector3d, player_rotation: Vector2d) -> Vector3d {
+  let x = vector.x - player_position.x;
+  let y = vector.y - player_position.y;
+  let z = vector.z - player_position.z;
 
-    // Convert rotation angles to radians
-    let rotation_x = player_rotation.x.to_radians();
-    let rotation_y = player_rotation.y.to_radians();
-    let rotation_z = player_rotation.z.to_radians();
+  let cache_operation = [Math::sin(player_rotation.x as f64) as f32, Math::cos(player_rotation.x as f64) as f32, Math::sin(player_rotation.y as f64) as f32, Math::cos(player_rotation.y as f64) as f32];
 
-    // Create quaternions for each rotation axis
-    let qx = Quaternion::from_axis_angle(&Vector3d::new(1.0, 0.0, 0.0), rotation_x);
-    let qy = Quaternion::from_axis_angle(&Vector3d::new(0.0, 1.0, 0.0), rotation_y);
-    let qz = Quaternion::from_axis_angle(&Vector3d::new(0.0, 0.0, 1.0), rotation_z);
+  let rotated_x = x * cache_operation[1] - z * cache_operation[0];
+  let rotated_z = x * cache_operation[0] + z * cache_operation[1];
+  let rotated_y = y * cache_operation[3] - rotated_z * cache_operation[2];
+  let rotated_z = y * cache_operation[2] + rotated_z * cache_operation[3];
 
-    console_log!("qx: {:?}", qx);
-    console_log!("qy: {:?}", qy);
-    console_log!("qz: {:?}", qz);
-
-    // Combine rotations (order matters: Z * Y * X)
-    let combined_rotation = qz.multiply(&qy).multiply(&qx);
-
-    console_log!("combined_rotation: {:?}", combined_rotation);
-
-    // Translate the vector so that the player is in the center
-    let translated_vector = Vector3d::new(
-        vector.x - player_position.x,
-        vector.y - player_position.y,
-        vector.z - player_position.z,
-    );
-
-    console_log!("translated_vector: {:?}", translated_vector);
-
-    // Rotate the translated vector using the combined rotation quaternion
-    let rotated_vector = combined_rotation.rotate_vector(&translated_vector);
-
-    console_log!("rotated_vector: {:?}", rotated_vector);
-
-    // Perform perspective division
-    let z = rotated_vector.z;
-    let x = rotated_vector.x;
-    let y = rotated_vector.y;
-
-    if x.is_finite() && y.is_finite() && z.is_finite() {
-        Vector3d { x, y, z }
-    } else {
-        Vector3d { x: 0.0, y: 0.0, z: 0.0 }
-    }
+  if rotated_x.is_finite() && rotated_y.is_finite() && rotated_z.is_finite() {
+    Vector3d { x: rotated_x, y: rotated_y, z: rotated_z }
+  } else {
+    Vector3d { x: 0.0, y: 0.0, z: 0.0 }
+  }
 }
 
 pub fn transform_world(world: Vec<WorldObject>, player: Player) -> Vec<TransformedTriangle> {
@@ -92,7 +62,7 @@ pub fn transform_world(world: Vec<WorldObject>, player: Player) -> Vec<Transform
     let normal = transformed_triangle[0].cross_product(transformed_triangle[1]);
     let transformed_triangle_vertices: Vec<TriangleVertice> = transformed_triangle.iter().map(|vertice| {
       let projected = project_vector(*vertice, player.position, player.rotation);
-      TriangleVertice{ position: projected, screen_position: Vector2d{ x: 0.0, y: 0.0 } }
+      TriangleVertice{ position: projected, screen_position: screen_position(projected) }
     }).collect();
 
     let transformed_triangle: TransformedTriangle = TransformedTriangle {
@@ -106,4 +76,11 @@ pub fn transform_world(world: Vec<WorldObject>, player: Player) -> Vec<Transform
     new_world.push(transformed_triangle);
   }
   return new_world;
+}
+
+pub fn screen_position(position: Vector3d) -> Vector2d {
+  Vector2d {
+    x: Math::round((position.x * FOV / position.z) as f64) as f32,
+    y: Math::round((position.y * FOV / position.z) as f64) as f32,
+  }
 }
