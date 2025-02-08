@@ -1,25 +1,25 @@
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vector3d {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+  pub x: f32,
+  pub y: f32,
+  pub z: f32,
 }
 
 #[wasm_bindgen]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vector2d {
-    pub x: f32,
-    pub y: f32,
+  pub x: f32,
+  pub y: f32,
 }
 
 #[wasm_bindgen]
 impl Vector3d {
   #[wasm_bindgen(constructor)]
   pub fn new(x: f32, y: f32, z: f32) -> Vector3d {
-    Vector3d { x, y, z }
+    Vector3d { x: x as f32, y: y as f32, z: z as f32 }
   }
   pub fn cross_product(self, other: Vector3d) -> Vector3d {
     Vector3d {
