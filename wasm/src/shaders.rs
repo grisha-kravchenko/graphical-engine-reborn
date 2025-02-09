@@ -13,7 +13,9 @@ pub fn pixel_shader(pixel: Pixel, world: Vec<TransformedTriangle>, light: f64) -
     if pixel_in_triangle(pixel, triangle_vertices) {
       let triangle_points = Vec::from([triangle.vertice1.position, triangle.vertice2.position, triangle.vertice3.position]);
       let distance = distance_to_triangle(pixel, triangle_points, triangle.normal);
-      color = Vec::from([Math::min(round!(Math::max(light / distance as f64, 0.0)) as f64, 255.0) as u8, Math::min(round!(Math::max(light / distance as f64, 0.0)) as f64, 255.0) as u8, Math::min(round!(Math::max(light / distance as f64, 0.0)) as f64, 255.0) as u8]);
+      if distance > 0.0 {
+        color = Vec::from([Math::min(round!(Math::max(light / distance as f64, 0.0)) as f64, 255.0) as u8, Math::min(round!(Math::max(light / distance as f64, 0.0)) as f64, 255.0) as u8, Math::min(round!(Math::max(light / distance as f64, 0.0)) as f64, 255.0) as u8]);
+      }
     }
   }
   Pixel { x: pixel.x, y: pixel.y, r: color[0], g: color[1], b: color[2] }
