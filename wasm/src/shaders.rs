@@ -1,5 +1,5 @@
 use crate::structures::*;
-use crate::{console_log, floor, round};
+use crate::{ floor, round };
 use crate::vectors::*;
 use js_sys::Math;
 
@@ -25,7 +25,6 @@ pub fn pixel_in_triangle(pixel: Pixel, triangle: Vec<Vector2d>) -> bool {
   let denominator = (triangle[1].y - triangle[2].y) * (triangle[0].x - triangle[2].x) + (triangle[2].x - triangle[1].x) * (triangle[0].y - triangle[2].y);
 
   if denominator == 0.0 {
-    console_log!("denominator: {:?}", denominator);
     return false; // Triangle is degenerate
   }
 
