@@ -9,6 +9,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 js-sys = "0.3.77"
 wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4"
 web-sys = { version="0.3.77", features=[ "console", "WebSocket", "MessageEvent" ] }
 
 [profile.release]

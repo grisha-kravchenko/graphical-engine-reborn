@@ -7,35 +7,40 @@ mod quaternions;
 mod websocket;
 #[macro_use]
 mod console;
+mod create_screen;
 
 use structures::*;
 use vectors::*;
 use shaders::*;
-use js_sys::Math;
+use js_sys::{ Math, Promise };
+use wasm_bindgen_futures::future_to_promise;
+use create_screen::*;
 
 const FOV: f32 = 100.0;
-  #[wasm_bindgen]
-  pub fn render_screen(pixels: Vec<Pixel>, world: Vec<WorldObject>, player: Player, light: f64) -> Result<Vec<Pixel>, JsValue> {
-  let mut new_pixels: Vec<Pixel> = Vec::with_capacity(pixels.len());
-  let transformed_world = transform_world(world.clone(), player);
-  for pixel in pixels {
-    let _position = Vector3d {
-      x: pixel.x as f32,
-      y: pixel.y as f32,
-      z: 0.0,
-    };
-    let new_pixel = pixel_shader(pixel, transformed_world.clone(), light);
-    new_pixels.push(new_pixel);
-  }
-  Ok(new_pixels)
+
+#[wasm_bindgen]
+pub fn render_screen(world: Vec<WorldObject>, player: Player, light: f64, screen_width: u32) -> Promise {
+  future_to_promise(async move {
+    let pixels = new_screen(screen_width);
+    let mut new_pixels: Vec<Pixel> = Vec::with_capacity(pixels.len());
+    let transformed_world = transform_world(world.clone(), player);
+    for pixel in pixels {
+      let _position = Vector3d {
+        x: pixel.x as f32,
+        y: pixel.y as f32,
+        z: 0.0,
+      };
+      let new_pixel = pixel_shader(pixel, transformed_world.clone(), light);
+      new_pixels.push(new_pixel);
+    }
+    Ok(JsValue::from(new_pixels))
+  })
 }
 
-pub fn project_vector(vector: Vector3d, player_position: Vector3d, player_rotation: Vector2d) -> Vector3d {
+pub fn project_vector(vector: Vector3d, player_position: Vector3d, cache_operation: [f32; 4]) -> Vector3d {
   let x = vector.x - player_position.x;
   let y = vector.y - player_position.y;
   let z = vector.z - player_position.z;
-
-  let cache_operation = [Math::sin(player_rotation.x as f64) as f32, Math::cos(player_rotation.x as f64) as f32, Math::sin(player_rotation.y as f64) as f32, Math::cos(player_rotation.y as f64) as f32];
 
   let rotated_x = x * cache_operation[1] - z * cache_operation[0];
   let rotated_z = x * cache_operation[0] + z * cache_operation[1];
@@ -50,31 +55,33 @@ pub fn project_vector(vector: Vector3d, player_position: Vector3d, player_rotati
 }
 
 pub fn transform_world(world: Vec<WorldObject>, player: Player) -> Vec<TransformedTriangle> {
-  let mut new_world: Vec<TransformedTriangle> = Vec::with_capacity(world.len());
+  // transform world
+  let mut transformed_world: Vec<TransformedTriangle> = Vec::with_capacity(world.len());
   for object in world {
-    let mut transformed_triangle: Vec<Vector3d> = Vec::with_capacity(3);
+    // transform triangle
+    let mut transformed_triangle: Vec<TriangleVertice> = Vec::with_capacity(3);
     for vertice in [object.vertice1, object.vertice2, object.vertice3] {
-      let projected = project_vector(vertice, player.position, player.rotation);
-      transformed_triangle.push(projected);
+      let cache_operation = [Math::sin(player.rotation.x as f64) as f32, Math::cos(player.rotation.x as f64) as f32, Math::sin(player.rotation.y as f64) as f32, Math::cos(player.rotation.y as f64) as f32];
+
+      let projected = project_vector(vertice, player.position, cache_operation);
+      transformed_triangle.push(TriangleVertice { position: projected, screen_position: screen_position(projected) });
     }
 
-    let normal = transformed_triangle[1].subtract(transformed_triangle[0]).cross_product(transformed_triangle[2].subtract(transformed_triangle[0]));
-    let transformed_triangle_vertices: Vec<TriangleVertice> = transformed_triangle.iter().map(|vertice| {
-      let projected = project_vector(*vertice, player.position, player.rotation);
-      TriangleVertice{ position: projected, screen_position: screen_position(projected) }
-    }).collect();
+    // calculate normal
+    let normal = transformed_triangle[1].position.subtract(transformed_triangle[0].position).cross_product(transformed_triangle[2].position.subtract(transformed_triangle[0].position));
 
+    // push transformed triangle
     let transformed_triangle: TransformedTriangle = TransformedTriangle {
-      vertice1: transformed_triangle_vertices[0],
-      vertice2: transformed_triangle_vertices[1],
-      vertice3: transformed_triangle_vertices[2],
+      vertice1: transformed_triangle[0],
+      vertice2: transformed_triangle[1],
+      vertice3: transformed_triangle[2],
       texture_id: object.texture_id,
       normal: normal,
     };
 
-    new_world.push(transformed_triangle);
+    transformed_world.push(transformed_triangle);
   }
-  return new_world;
+  transformed_world
 }
 
 pub fn screen_position(position: Vector3d) -> Vector2d {
