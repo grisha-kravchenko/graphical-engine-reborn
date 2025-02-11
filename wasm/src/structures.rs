@@ -12,12 +12,13 @@ pub struct Pixel {
   pub b: u8,
 }
 
-// #[derive(Clone, Copy)] // unused yet
-// pub struct Color {
-//     pub r: u8,
-//     pub g: u8,
-//     pub b: u8,
-// }
+#[derive(Clone, Copy, Debug)]
+#[wasm_bindgen]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct TriangleVertice {

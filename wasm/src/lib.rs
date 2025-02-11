@@ -7,33 +7,35 @@ mod quaternions;
 mod websocket;
 #[macro_use]
 mod console;
-mod create_screen;
 
 use structures::*;
 use vectors::*;
 use shaders::*;
 use js_sys::{ Math, Promise };
 use wasm_bindgen_futures::future_to_promise;
-use create_screen::*;
+use rayon::prelude::*;
+
+#[cfg(feature = "parallel")]
+pub use wasm_bindgen_rayon::init_thread_pool;
 
 const FOV: f32 = 100.0;
 
 #[wasm_bindgen]
 pub fn render_screen(world: Vec<WorldObject>, player: Player, light: f64, screen_width: u32) -> Promise {
   future_to_promise(async move {
-    let pixels = new_screen(screen_width);
-    let mut new_pixels: Vec<Pixel> = Vec::with_capacity(pixels.len());
-    let transformed_world = transform_world(world.clone(), player);
-    for pixel in pixels {
-      let _position = Vector3d {
-        x: pixel.x as f32,
-        y: pixel.y as f32,
-        z: 0.0,
-      };
-      let new_pixel = pixel_shader(pixel, transformed_world.clone(), light);
-      new_pixels.push(new_pixel);
-    }
-    Ok(JsValue::from(new_pixels))
+    // initialise variables
+    let screen_area = (screen_width * screen_width) as usize; // calculate screen area
+    let transformed_world = transform_world(world.clone(), player); // transform world
+    let new_pixels: Vec<Color> = (0..screen_area)
+      .into_par_iter() // parallel iteration
+      .map(|index| {
+        let transformed_world_clone = transformed_world.clone();
+        let new_pixel = pixel_shader(index as u32, transformed_world_clone, light, FOV);
+        new_pixel
+      })
+      .collect();
+    let output = JsValue::from(new_pixels);
+    Ok(output)
   })
 }
 

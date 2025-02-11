@@ -16,46 +16,47 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 let isRunning = true;
 let loopHandle;
 
-const loop = async (ctx) => {
+const loop = async (ctx, once = false) => {
 	while (isRunning) {
 		const worldObjects = loadWorldObjects();
 		const pixels = render_screen(worldObjects, getPlayer(), 20000, screenProperties.width);
 		pixels.then(pixels => drawScreen(pixels, screenProperties, ctx));
 		await sleep(tickTime);
+    if (once) {
+      break;
+    }
 	}
 }
 
-const startLoop = (ctx) => {
-	if (!loopHandle) {
-		isRunning = true;
-		loopHandle = new Promise(() => loop(ctx));
-	}
-};
 
-const stopLoop = () => {
-	isRunning = false;
-	loopHandle = null;
-};
 
 init().then(() => {
 	console.log("init");
 	connect_to_server(localConfig.websocketServerAddress);
 	initializeControls();
 	const ctx = $("#canvas")[0].getContext('2d');
-	startLoop(ctx);
 
-	let pause_window;
+  let pause_window;
 
-	window.addEventListener('focus', () => {
-		$('#canvas').css('filter', 'none');
-		pause_window.remove();
-		startLoop(ctx);
-	});
+  const startLoop = () => {
+    if (!loopHandle) {
+      isRunning = true;
+      loopHandle = new Promise(() => loop(ctx));
+      $('#canvas').css('filter', 'none');
+      pause_window.remove();
+    }
+  };
 
-	window.addEventListener('blur', () => {
-		$('#canvas').css('filter', 'blur(10px)');
-		pause_window = $('<div class="pause-window">Paused</div>');
-		$('body').append(pause_window);
-		stopLoop();
-	});
+  const stopLoop = () => {
+    isRunning = false;
+    loopHandle = null;
+    $('#canvas').css('filter', 'blur(10px)');
+    pause_window = $('<div class="pause-window">Paused</div>');
+    $('body').append(pause_window);
+  };
+
+  document.hasFocus() ? startLoop() : (() => {loop(ctx, true); stopLoop()})(); // start logic
+
+	window.addEventListener('focus', startLoop);
+	window.addEventListener('blur', stopLoop);
 });

@@ -9,10 +9,10 @@ const drawScreen = (pixels, screenProperties, ctx) => {
 
 	pixelSize = Math.max(pixelSize, pixelSize);
 
-	pixels.forEach((pixel) => {
-		const { x, y, r, g, b } = pixel;
-
+	pixels.forEach((pixel, index) => {
+		const { r, g, b } = pixel;
 		ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+		let { x, y } = { x: index % screenProperties.width, y: Math.floor(index / screenProperties.width) };
 		ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
 	});
 }

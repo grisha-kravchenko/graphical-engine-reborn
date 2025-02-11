@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "./src/index.js",
   "scripts": {
-    "build": "cd wasm && wasm-pack build --target web --out-dir ../src/frontend/wasm && cd ../src/frontend && npm install",
+    "build": "./build.sh",
     "start": "node src/index.js",
     "test": "nodemon src/index.js"
   },
