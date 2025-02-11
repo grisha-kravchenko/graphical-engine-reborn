@@ -3,7 +3,7 @@ use crate::{ floor, round };
 use crate::vectors::*;
 use js_sys::Math;
 
-pub fn pixel_shader(index: u32, world: Vec<TransformedTriangle>, light: f64, fov: f32) -> Color {
+pub fn pixel_shader(index: u32, world: &Vec<TransformedTriangle>, light: f64, fov: f32) -> Color {
   let pixel = Vector2d { x: index as f32 % fov, y: index as f32 / fov };
   let mut color: Vec<u8> = Vec::from([0, 0, 0]);
   for triangle in world {
