@@ -29,9 +29,7 @@ pub fn render_screen(world: Vec<WorldObject>, player: Player, light: f64, screen
     let new_pixels: Vec<Color> = (0..screen_area)
       .into_par_iter() // parallel iteration
       .map(|index| {
-        let transformed_world_clone = transformed_world.clone();
-        let new_pixel = pixel_shader(index as u32, transformed_world_clone, light, FOV);
-        new_pixel
+        pixel_shader(index as u32, transformed_world.clone(), light, FOV)
       })
       .collect();
     let output = JsValue::from(new_pixels);

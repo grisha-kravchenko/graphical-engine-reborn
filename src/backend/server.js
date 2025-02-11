@@ -7,7 +7,15 @@ const server = (port) => {
     const server = http.createServer(app); 
     const wss = new ws.Server({ server });
 
-    app.use(express.static('src/frontend'));
+    app.use(express.static('src/frontend', {
+        setHeaders: (res, path, stat) => {
+            // Required headers for SharedArrayBuffer and threads
+            res.set('Cross-Origin-Opener-Policy', 'same-origin');
+            res.set('Cross-Origin-Embedder-Policy', 'require-corp');
+            res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+            
+        }
+    }));
 
     wss.on('connection', (ws) => {
         console.log('Client connected');

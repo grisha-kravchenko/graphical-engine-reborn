@@ -1,4 +1,4 @@
-import init, { render_screen, connect_to_server } from '../wasm/wasm.js';
+import init, { render_screen, connect_to_server, initThreadPool } from '../wasm/wasm.js';
 import { drawScreen } from './canvas.js';
 import { initializeControls, getPlayer } from './controls.js';
 import { default as localConfig } from '../wasm/clientLocalConfig.js';
@@ -9,8 +9,6 @@ const screenProperties = {
 	pixelSize: $("#canvas")[0].width / 100,
 };
 
-await init();
-
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 let isRunning = true;
@@ -20,7 +18,11 @@ const loop = async (ctx, once = false) => {
 	while (isRunning) {
 		const worldObjects = loadWorldObjects();
 		const pixels = render_screen(worldObjects, getPlayer(), 20000, screenProperties.width);
-		pixels.then(pixels => drawScreen(pixels, screenProperties, ctx));
+    console.time("render_screen");
+		pixels.then(pixels => {
+      console.timeEnd("render_screen");
+      drawScreen(pixels, screenProperties, ctx);
+    });
 		await sleep(tickTime);
     if (once) {
       break;
@@ -28,12 +30,13 @@ const loop = async (ctx, once = false) => {
 	}
 }
 
-
-
-init().then(() => {
-	console.log("init");
-	connect_to_server(localConfig.websocketServerAddress);
-	initializeControls();
+init()
+  .then(async () => await initThreadPool(navigator.hardwareConcurrency))
+  .then(async () => {
+    console.log(self.crossOriginIsolated);
+    console.log("init");
+    connect_to_server(localConfig.websocketServerAddress);
+    initializeControls();
 	const ctx = $("#canvas")[0].getContext('2d');
 
   let pause_window;
