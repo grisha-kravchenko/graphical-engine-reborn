@@ -1,6 +1,6 @@
 import init, { render_screen, connect_to_server, initThreadPool } from '../wasm/wasm.js';
 import { drawScreen } from './canvas.js';
-import { initializeControls, getPlayer } from './controls.js';
+import { initializeControls, getPlayer, toggleRunning } from './controls.js';
 import { default as localConfig } from '../wasm/clientLocalConfig.js';
 import { loadWorldObjects } from './world.js';
 const tickTime = 50;
@@ -14,10 +14,10 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 let isRunning = true;
 let loopHandle;
 
-const loop = async (ctx, once = false) => {
+const loop = async (ctx, gpu, once = false) => {
 	while (isRunning) {
 		const worldObjects = loadWorldObjects();
-		const pixels = render_screen(worldObjects, getPlayer(), 20000, screenProperties.width);
+		const pixels = render_screen(worldObjects, getPlayer(), 20000, screenProperties.width, gpu);
     console.time("render_screen");
 		pixels.then(pixels => {
       console.timeEnd("render_screen");
@@ -33,33 +33,63 @@ const loop = async (ctx, once = false) => {
 init()
   .then(async () => await initThreadPool(navigator.hardwareConcurrency))
   .then(async () => {
-    console.log(self.crossOriginIsolated);
     console.log("init");
     connect_to_server(localConfig.websocketServerAddress);
-    initializeControls();
-	const ctx = $("#canvas")[0].getContext('2d');
+    const ctx = $("#canvas")[0].getContext('2d');
 
-  let pause_window;
+    let UI = new UIclass();
+    $('.side-bar-toggle').click(() => UI.toggleSideBar(startLoop, stopLoop));
 
-  const startLoop = () => {
-    if (!loopHandle) {
-      isRunning = true;
-      loopHandle = new Promise(() => loop(ctx));
-      $('#canvas').css('filter', 'none');
-      pause_window.remove();
-    }
-  };
+    let pause_window;
+    let gpu = false;
 
-  const stopLoop = () => {
-    isRunning = false;
-    loopHandle = null;
-    $('#canvas').css('filter', 'blur(10px)');
-    pause_window = $('<div class="pause-window">Paused</div>');
-    $('body').append(pause_window);
-  };
+    $('#gpu-toggle').click(() => {
+      gpu = !gpu;
+      $('#gpu-toggle').text(gpu ? 'Disable GPU' : 'Enable GPU');
+      stopLoop();
+    });
 
-  document.hasFocus() ? startLoop() : (() => {loop(ctx, true); stopLoop()})(); // start logic
+    const startLoop = () => {
+      if (!loopHandle) {
+        isRunning = true;
+        toggleRunning(true);
+        initializeControls();
+        loopHandle = new Promise(() => loop(ctx, gpu));
+        $('#canvas').css('filter', 'none');
+        pause_window.remove();
+        pause_window = null;
+      }
+    };
 
-	window.addEventListener('focus', startLoop);
-	window.addEventListener('blur', stopLoop);
+    const stopLoop = () => {
+      isRunning = false;
+      toggleRunning(false);
+      loopHandle = null;
+      $('#canvas').css('filter', 'blur(10px)');
+      if (!pause_window) {
+        pause_window = $('<div class="pause-window">Paused</div>');
+        $('body').append(pause_window);
+      }
+    };
+
+    document.hasFocus() ? startLoop() : (() => {loop(ctx, true); stopLoop()})(); // start logic
+
+    window.addEventListener('focus', startLoop);
+    window.addEventListener('blur', stopLoop);
 });
+
+class UIclass {
+  constructor() {
+    this.sideBar = document.querySelector('.side-bar');
+    this.sideBar.toggled = false
+  }
+
+  toggleSideBar(startLoop, stopLoop
+
+  ) {
+    this.sideBar.classList.toggle('side-bar-active');
+    this.sideBar.toggled ? startLoop() : stopLoop();
+    this.sideBar.toggled = !this.sideBar.toggled;
+    $('.side-bar-toggle').blur();
+  }
+}

@@ -3,6 +3,11 @@ let playerGlobal = {position: {x: 0, y: 0, z: -100}, rotation: {x: 0, y: 0}, vel
 let keyPressed = new Object();
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+let isRunning = true;
+const toggleRunning = (state) => {
+  isRunning = state;
+}
+
 const getPlayer = () => {
 	const player = {
 		position: new Vector3d(playerGlobal.position.x, playerGlobal.position.y, playerGlobal.position.z),
@@ -13,7 +18,7 @@ const getPlayer = () => {
 
 const controlTick = async (delay) => {
 	const key = (input) => keyPressed[input] ? 1 : 0;
-	while (true) {
+	while (isRunning) {
 		const playerLocal = {position: {x: 0, y: 0, z: 0}, rotation: {x: 0, y: 0}, velocityY: 0};
 		const moveSpeed = 1;
 		let forwardMove = (key('w') - key('s')) * moveSpeed;
@@ -40,7 +45,7 @@ const initializeControls = () => {
 		keyPressed[event.key] = false;
 	});
 
-  controlTick(10);
+    controlTick(10);
 }
 
-export { getPlayer, initializeControls };
+export { getPlayer, initializeControls, toggleRunning };

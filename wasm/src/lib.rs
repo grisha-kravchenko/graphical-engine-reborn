@@ -3,7 +3,6 @@ use wasm_bindgen::prelude::*;
 mod structures;
 mod vectors;
 mod shaders;
-mod quaternions;
 mod websocket;
 #[macro_use]
 mod console;
@@ -16,22 +15,28 @@ use wasm_bindgen_futures::future_to_promise;
 use rayon::prelude::*;
 
 #[cfg(feature = "parallel")]
-pub use wasm_bindgen_rayon::init_thread_pool;
+pub use wasm_bindgen_rayon::init_thread_pool; // output parallel threads initializer
 
 const FOV: f32 = 100.0;
 
 #[wasm_bindgen]
-pub fn render_screen(world: Vec<WorldObject>, player: Player, light: f64, screen_width: u32) -> Promise {
+pub fn render_screen(world: Vec<WorldObject>, player: Player, light: f64, screen_width: u32, parallel: bool) -> Promise {
   future_to_promise(async move {
     // initialise variables
     let screen_area = (screen_width * screen_width) as usize; // calculate screen area
     let transformed_world = transform_world(world.clone(), player); // transform world
-    let new_pixels: Vec<Color> = (0..screen_area)
-      .into_par_iter() // parallel iteration
-      .map(|index| {
+    let new_pixels: Vec<Color> = if parallel { // parallel or sequential
+      (0..screen_area)
+        .into_par_iter() // parallel iteration
+        .map(|index| {
+          pixel_shader(index as u32, &transformed_world, light, FOV)
+        })
+        .collect()
+    } else {
+      (0..screen_area).map(|index| {
         pixel_shader(index as u32, &transformed_world, light, FOV)
-      })
-      .collect();
+      }).collect()
+    };
     let output = JsValue::from(new_pixels);
     Ok(output)
   })
